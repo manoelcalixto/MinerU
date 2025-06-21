@@ -1,5 +1,6 @@
 import time
 import gc
+import os
 from PIL import Image
 from loguru import logger
 import numpy as np
@@ -334,3 +335,47 @@ def get_vram(device):
             return total_memory
     else:
         return None
+
+
+def calculate_dynamic_batch_ratio(device):
+    """
+    Calculate dynamic batch ratio based on available VRAM.
+    This function automatically scales batch size based on GPU memory.
+    
+    Returns:
+        int: Optimal batch ratio for the available VRAM
+    """
+    vram = get_vram(device)
+    
+    if vram is None:
+        logger.info(f'Could not determine GPU memory, using default batch_ratio: 1')
+        return 1
+    
+    # Get virtual VRAM size if set
+    gpu_memory = int(os.getenv('MINERU_VIRTUAL_VRAM_SIZE', round(vram)))
+    
+    # Dynamic calculation based on VRAM
+    # These values are based on empirical testing and can be adjusted
+    if gpu_memory >= 96:  # High-memory GPUs (e.g., custom 96GB cards)
+        batch_ratio = 80
+    elif gpu_memory >= 80:  # A100 80GB, H100 80GB
+        batch_ratio = 64
+    elif gpu_memory >= 48:  # A6000, RTX 8000
+        batch_ratio = 48
+    elif gpu_memory >= 40:  # A100 40GB
+        batch_ratio = 32
+    elif gpu_memory >= 24:  # RTX 3090, RTX 4090
+        batch_ratio = 24
+    elif gpu_memory >= 16:  # V100, T4 16GB
+        batch_ratio = 16
+    elif gpu_memory >= 12:  # RTX 3080, RTX 4080
+        batch_ratio = 8
+    elif gpu_memory >= 8:  # RTX 3070, RTX 4070
+        batch_ratio = 4
+    elif gpu_memory >= 6:  # RTX 2060
+        batch_ratio = 2
+    else:
+        batch_ratio = 1
+    
+    logger.info(f'GPU memory: {gpu_memory} GB, calculated batch_ratio: {batch_ratio}')
+    return batch_ratio

@@ -8,7 +8,7 @@ from .model_init import MineruPipelineModel
 from mineru.utils.config_reader import get_device
 from ...utils.pdf_classify import classify
 from ...utils.pdf_image_tools import load_images_from_pdf
-from ...utils.model_utils import get_vram, clean_memory
+from ...utils.model_utils import clean_memory, calculate_dynamic_batch_ratio
 
 
 os.environ['PYTORCH_ENABLE_MPS_FALLBACK'] = '1'  # 让mps可以fallback
@@ -171,24 +171,7 @@ def batch_image_analyze(
             ) from e
 
     if str(device).startswith('npu') or str(device).startswith('cuda'):
-        vram = get_vram(device)
-        if vram is not None:
-            gpu_memory = int(os.getenv('MINERU_VIRTUAL_VRAM_SIZE', round(vram)))
-            if gpu_memory >= 16:
-                batch_ratio = 16
-            elif gpu_memory >= 12:
-                batch_ratio = 8
-            elif gpu_memory >= 8:
-                batch_ratio = 4
-            elif gpu_memory >= 6:
-                batch_ratio = 2
-            else:
-                batch_ratio = 1
-            logger.info(f'gpu_memory: {gpu_memory} GB, batch_ratio: {batch_ratio}')
-        else:
-            # Default batch_ratio when VRAM can't be determined
-            batch_ratio = 1
-            logger.info(f'Could not determine GPU memory, using default batch_ratio: {batch_ratio}')
+        batch_ratio = calculate_dynamic_batch_ratio(device)
 
     batch_model = BatchAnalyze(model_manager, batch_ratio, formula_enable, table_enable)
     results = batch_model(images_with_extra_info)
