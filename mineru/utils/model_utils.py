@@ -356,7 +356,9 @@ def calculate_dynamic_batch_ratio(device):
     
     # Dynamic calculation based on VRAM
     # These values are based on empirical testing and can be adjusted
-    if gpu_memory >= 96:  # High-memory GPUs (e.g., custom 96GB cards)
+    if gpu_memory >= 200:  # B200, H200 200GB
+        batch_ratio = 160
+    elif gpu_memory >= 96:  # High-memory GPUs (e.g., custom 96GB cards)
         batch_ratio = 80
     elif gpu_memory >= 80:  # A100 80GB, H100 80GB
         batch_ratio = 64
