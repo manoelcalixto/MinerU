@@ -377,7 +377,7 @@ def calculate_dynamic_batch_ratio(device):
     elif gpu_memory >= 24:   # RTX 3090, RTX 4090 (24GB)
         batch_ratio = 24
     elif gpu_memory >= 16:   # V100, T4 (16GB)
-        batch_ratio = 16
+        batch_ratio = 12
     elif gpu_memory >= 12:   # RTX 3080, RTX 4080 (12GB)
         batch_ratio = 8
     elif gpu_memory >= 8:    # RTX 3070, RTX 4070 (8GB)
