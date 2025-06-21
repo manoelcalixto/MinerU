@@ -354,27 +354,35 @@ def calculate_dynamic_batch_ratio(device):
     # Get virtual VRAM size if set
     gpu_memory = int(os.getenv('MINERU_VIRTUAL_VRAM_SIZE', round(vram)))
     
-    # Dynamic calculation based on VRAM
-    # These values are based on empirical testing and can be adjusted
-    if gpu_memory >= 200:  # B200, H200 200GB
+    # Dynamic calculation based on VRAM, approximate 80% utilization for large cards.
+    # Customize thresholds for emerging GPU memory sizes.
+    if gpu_memory >= 200:  # B200, H200 (200GB)
         batch_ratio = 160
-    elif gpu_memory >= 96:  # High-memory GPUs (e.g., custom 96GB cards)
+    elif gpu_memory >= 160:  # 160GB-class cards
+        batch_ratio = 128
+    elif gpu_memory >= 140:  # H200 SXM (141GB)
+        batch_ratio = 112
+    elif gpu_memory >= 120:  # 120GB-class cards
+        batch_ratio = 96
+    elif gpu_memory >= 96:   # High-memory GPUs (96GB)
         batch_ratio = 80
-    elif gpu_memory >= 80:  # A100 80GB, H100 80GB
+    elif gpu_memory >= 80:   # A100, H100 (80GB)
         batch_ratio = 64
-    elif gpu_memory >= 48:  # A6000, RTX 8000
+    elif gpu_memory >= 64:   # 64GB-class cards
+        batch_ratio = 64
+    elif gpu_memory >= 48:   # A6000, RTX 8000 (48GB)
         batch_ratio = 48
-    elif gpu_memory >= 40:  # A100 40GB
+    elif gpu_memory >= 40:   # A100 PCIe (40GB)
         batch_ratio = 32
-    elif gpu_memory >= 24:  # RTX 3090, RTX 4090
+    elif gpu_memory >= 24:   # RTX 3090, RTX 4090 (24GB)
         batch_ratio = 24
-    elif gpu_memory >= 16:  # V100, T4 16GB
+    elif gpu_memory >= 16:   # V100, T4 (16GB)
         batch_ratio = 16
-    elif gpu_memory >= 12:  # RTX 3080, RTX 4080
+    elif gpu_memory >= 12:   # RTX 3080, RTX 4080 (12GB)
         batch_ratio = 8
-    elif gpu_memory >= 8:  # RTX 3070, RTX 4070
+    elif gpu_memory >= 8:    # RTX 3070, RTX 4070 (8GB)
         batch_ratio = 4
-    elif gpu_memory >= 6:  # RTX 2060
+    elif gpu_memory >= 6:    # RTX 2060 (6GB)
         batch_ratio = 2
     else:
         batch_ratio = 1
